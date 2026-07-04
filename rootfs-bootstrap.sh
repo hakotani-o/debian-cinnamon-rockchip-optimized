@@ -101,7 +101,7 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 useradd -m -s /bin/bas
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 usermod -aG sudo setupadmin
 echo 'setupadmin ALL=(ALL) NOPASSWD: ALL' >> $1/etc/sudoers
 
-# ① GDM3の自動ログイン設定
+# ① lightdmの自動ログイン設定
 cat << 'EOF' > $1/etc/lightdm/lightdm.conf
 [LightDM]
 
