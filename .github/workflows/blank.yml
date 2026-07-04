@@ -1,36 +1,85 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
-
-# Controls when the workflow will run
+name: v1-debian-gnome-clean-build
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+   inputs:
+      mesa_source:
+        description: 'Mesaのソースコードを選択'
+        required: true
+        default: 'upstream'
+        type: choice
+        options:
+          - upstream
+          - debian
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write  # これがリリース作成に必要
+
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  command:
+    name: Clean build disk images with Mesa for Rockchip
+    runs-on: ubuntu-24.04-arm
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+# 2. ローカルと共通のBASHスクリプトを実行   Mesa deb
+      - name: Build all package and disk images
+        env: 
+           mesa_source: ${{ github.event.inputs.mesa_source }}
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          mkdir -p build/overlay build/kernel build/images
+          cp *.sh build
+          cp my-add.txt build/overlay
+          cd build
+          chmod +x *.sh
+          ./main-control.sh $mesa_source
+          cd ..
+          echo " ------------- overlay -------------------"
+          ls build/overlay/
+          echo " ------------- kernel --------------------"
+          ls build/kernel/
+          echo " ------------ images ----------------------"
+          ls build/images/
+
+      - name: Get current date
+        id: date
+        run: echo "now=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
+
+      - name: Get kernel version
+        id: kernel
+        run: cat ./build/overlay/kernel_version >> $GITHUB_OUTPUT
+
+      - name: Mesa version
+        id: mesa
+        run: echo "release_mesa_info=$(cat ./build/overlay/rel.txt)" >> $GITHUB_OUTPUT
+        
+
+        # --- リリース直前にこれを追加 ---
+      - name: Fix file permissions
+        run: sudo chown -R runner:runner ./build/overlay/* ./build/kernel/* ./build/images/*
+        # ----------------------------
+      
+      - name: Create Release and Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          # 実行するたびにユニークなタグ名（例: build-1, build-2...）を付けます
+          tag_name: build-${{ github.run_number }}
+          name: "Orange Pi 5 / 5 PLUS Disk Image Build ${{ github.run_number }}"
+          body: |
+            Orange Pi 5 / 5 PLUS ディスクイメージ with Mesa for Rockchip
+            ビルド日時: ${{ steps.date.outputs.now }}
+            ベースカーネル: ${{ steps.kernel.outputs.kernel_version }}
+            Mesa バージョン: ${{ steps.mesa.outputs.release_mesa_info }}
+          draft: false
+          prerelease: false
+          # ここに圧縮済みファイルのパスを指定します
+          files: |
+            ./build/images/Debian-*img.xz 
+            ./build/overlay/*.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
