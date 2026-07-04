@@ -82,7 +82,7 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y dist-upgrad
 systemd-nspawn -D $1 \
   --resolv-conf=replace-host \
   --as-pid2 \
-  apt-get -y install cinnamon lightdm initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-gnome-desktop task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim
+  apt-get -y install gnome gdm3 initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-gnome-desktop task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim
 #firefox-esr-l10n-ja thunderbird-l10n-ja  task-gnome-desktop
 
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /bin/bash -c "apt-get install -y gstreamer1.0-plugins-bad gstreamer1.0-plugins-good gstreamer1.0-tools clapper mpv vulkan-tools mesa-utils"
@@ -99,9 +99,12 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 useradd -m -s /bin/bas
 #echo "setupadmin password"
 #systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 passwd setupadmin
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 usermod -aG sudo setupadmin
+
+cp $1/etc/sudoers $1/etc/sudoers.org
 echo 'setupadmin ALL=(ALL) NOPASSWD: ALL' >> $1/etc/sudoers
 
-# ① lightdmの自動ログイン設定
+# ① GDM3の自動ログイン設定
+mv $1/etc/lightdm/lightdm.conf $1/etc/lightdm/lightdm.conf.org
 cat << 'EOF' > $1/etc/lightdm/lightdm.conf
 [LightDM]
 
@@ -150,6 +153,9 @@ sudo sed -i 's/AutomaticLoginEnable=true/#AutomaticLoginEnable=true/g' /etc/gdm3
 sudo sed -i 's/AutomaticLogin=setupadmin/#AutomaticLogin=setupadmin/g' /etc/gdm3/daemon.conf
 
 sudo rm -f /etc/xdg/autostart/first-boot-wizard.desktop
+sudo userdel -r setupadmin
+sudo cp /etc/lightdm/lightdm.conf.org /etc/lightdm/lightdm.conf
+sudo cp /etc/sudoers.org /etc/sudoers
 
 zenity --info --text="設定が完了しました。システムを再起動します。" --width=300
 sudo reboot
@@ -161,10 +167,14 @@ chmod +x $1/usr/local/bin/gui-wizard.sh
 
 
 # kernel
-mkdir $1/kkk && cp -r kernel $1/kkk
+mkdir $1/kkk && cp -r kernel $1/kkk && cp overlay/*.deb $1/kkk/
+rm  $1/kkk/libdrm-dev_*.deb $1/kkk/libegl1-mesa-dev_*.deb $1/kkk/libgbm-dev_*.deb && \
+rm  $1/kkk/libgl1-mesa-dev_*.deb $1/kkk/libgles2-mesa-dev_*.deb $1/kkk/mesa-common-dev_*.deb && \
+rm  $1/kkk/mesa-opencl-icd_*.deb $1/kkk/mesa-teflon-delegate_*.deb $1/kkk/mesa-drm-shim_*.deb && \
+rm  $1/kkk/libdrm-tests_*.deb 
 
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /bin/bash -c "apt-get -y purge \$(dpkg --list | grep -Ei 'linux-image|linux-headers|linux-modules|linux-rockchip' | awk '{ print \$2 }')"
-systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /bin/bash -c "cd kkk && dpkg -i kernel/*conservative*.deb && dpkg -i kernel/*ondemand*.deb"
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /bin/bash -c "cd kkk && dpkg -i *.deb && dpkg -i kernel/*conservative*.deb && dpkg -i kernel/*ondemand*.deb"
 #&& dpkg -i kernel/*conservative*.deb && dpkg -i kernel/*ondemand*.deb"
 
 rm -rf $1/kkk
