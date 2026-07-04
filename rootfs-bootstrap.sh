@@ -82,7 +82,7 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y dist-upgrad
 systemd-nspawn -D $1 \
   --resolv-conf=replace-host \
   --as-pid2 \
-  apt-get -y install gnome gdm3 initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-gnome-desktop task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim
+  apt-get -y install cinnamon lightdm initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-gnome-desktop task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim
 #firefox-esr-l10n-ja thunderbird-l10n-ja  task-gnome-desktop
 
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /bin/bash -c "apt-get install -y gstreamer1.0-plugins-bad gstreamer1.0-plugins-good gstreamer1.0-tools clapper mpv vulkan-tools mesa-utils"
