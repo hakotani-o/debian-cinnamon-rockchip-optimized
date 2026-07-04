@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: v1-debian-gnome-clean-build
+name: v1-debian-cinnamon-clean-build
 on:
   workflow_dispatch:
    inputs:
