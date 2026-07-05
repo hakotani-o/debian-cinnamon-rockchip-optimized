@@ -89,8 +89,9 @@ echo "mesa_version=$mesa_version"
 echo "=== 2.5. debian/changelog の自動書き換え (Panthorバージョン化) ==="
 # Debian 14 (forky) の場合を想定しています。お使いのバージョンに合わせて forky を変更してください。
 # エディタを開かずに、非対話で changelog の先頭にカスタムバージョンを追加します。
+#dch -b --newversion "${mesa_version}-panthor1" \
 DEBEMAIL="opi5plus@bcc.example.com" DEBFULLNAME="hakotani-o" \
-dch -b --newversion "${mesa_version}-panthor1" \
+dch -b --newversion "${mesa_version}-1" \
     --distribution forky \
     --force-distribution \
     "Build for Panthor GPU support with optimization"
@@ -138,12 +139,12 @@ EOF
 
 echo "=== 4. パッケージバージョンの変更 (自動上書き防止) ==="
 # バージョン末尾に「~panthor1」を自動付与
-CURRENT_VERSION=$(dpkg-parsechangelog -S Version)
-export DEBEMAIL="user@localhost"
-export DEBFULLNAME="Panthor Builder"
+#CURRENT_VERSION=$(dpkg-parsechangelog -S Version)
+#export DEBEMAIL="user@localhost"
+#export DEBFULLNAME="Panthor Builder"
 # debchange --force-bad-version --newversion "${CURRENT_VERSION}~panthor1" "Custom Panthor-only build without heavy dependencies"
 # 修正後の推奨コード (例: 26.1.3-panthor1+panthor1)
-debchange --force-bad-version --newversion "${CURRENT_VERSION}+panthor1" "Custom Panthor-only build without heavy dependencies"
+#debchange --force-bad-version --newversion "${CURRENT_VERSION}+panthor1" "Custom Panthor-only build without heavy dependencies"
 
 echo "=== 5. 依存チェックを無視してビルド実行 ==="
 # -d フラグで不要なビルド依存（Intel/AMD用ライブラリなど）のチェックをスキップ
