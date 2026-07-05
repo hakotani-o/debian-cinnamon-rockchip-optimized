@@ -12,7 +12,7 @@ sudo apt-get install debian-archive-keyring
 
 	sudo rm -f log?
 	sudo ./build_kernel_env.sh orangepi-5-rk3588s_defconfig $Uri $suite kernel
-	#sudo ./meas-build-env.sh arm64 $1 $Uri $suite
+	sudo ./meas-build-env.sh arm64 $1 $Uri $suite
 	#sudo ./meas-build-env.sh arm64 ubuntu $Uri $suite
 	echo "########################## ROOTFS START ############################"
 	sudo ./rootfs-bootstrap.sh arm64 $Uri $suite
