@@ -79,11 +79,13 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get update
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y dist-upgrade
 # もし他のパッケージでも同じように止まった場合は同じパターンで：
 # echo 'パッケージ名 パッケージ名/質問キー boolean false' | debconf-set-selections
+#  --setenv=DEBCONF_NONINTERACTIVE_SEEN=true \
 systemd-nspawn -D $1 \
   --resolv-conf=replace-host \
-  --setenv=DEBIAN_FRONTEND=noninteractive \
   --as-pid2 \
-  apt-get -y install cinnamon lightdm initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim
+  --setenv=DEBIAN_FRONTEND=noninteractive \
+  apt-get -y install cinnamon lightdm initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim openssh-client
+
 #firefox-esr-l10n-ja thunderbird-l10n-ja  task-gnome-desktop
 
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /bin/bash -c "apt-get install -y gstreamer1.0-plugins-bad gstreamer1.0-plugins-good gstreamer1.0-tools clapper mpv vulkan-tools mesa-utils"
@@ -101,11 +103,12 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 useradd -m -s /bin/bas
 #systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 passwd setupadmin
 systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 usermod -aG sudo setupadmin
 
-cp $1/etc/sudoers $1/etc/sudoers.org
 echo 'setupadmin ALL=(ALL) NOPASSWD: ALL' >> $1/etc/sudoers
 
 # ① GDM3の自動ログイン設定
-mv $1/etc/lightdm/lightdm.conf $1/etc/lightdm/lightdm.conf.org
+if [ -f $1/etc/lightdm/lightdm.conf ]; then
+	mv $1/etc/lightdm/lightdm.conf $1/etc/lightdm/lightdm.conf.org
+fi
 cat << 'EOF' > $1/etc/lightdm/lightdm.conf
 [LightDM]
 
@@ -150,13 +153,14 @@ done
 sudo useradd -m -s /bin/bash -G sudo,video,audio "$NEW_USER"
 echo "$NEW_USER:$PASS1" | sudo chpasswd
 
-sudo sed -i 's/AutomaticLoginEnable=true/#AutomaticLoginEnable=true/g' /etc/gdm3/daemon.conf
-sudo sed -i 's/AutomaticLogin=setupadmin/#AutomaticLogin=setupadmin/g' /etc/gdm3/daemon.conf
-
 sudo rm -f /etc/xdg/autostart/first-boot-wizard.desktop
-sudo userdel -r setupadmin
-sudo cp /etc/lightdm/lightdm.conf.org /etc/lightdm/lightdm.conf
-sudo cp /etc/sudoers.org /etc/sudoers
+
+if [ -f /etc/lightdm/lightdm.conf.org ]; then
+	sudo cp /etc/lightdm/lightdm.conf.org /etc/lightdm/lightdm.conf
+else
+	sudo rm /etc/lightdm/lightdm.conf
+fi
+
 
 zenity --info --text="設定が完了しました。システムを再起動します。" --width=300
 sudo reboot
