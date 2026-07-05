@@ -3,8 +3,6 @@
 set -eE
 trap 'echo Error: in $0 on line $LINENO' ERR
 
-set -x
-
 linux_dir=$1
 rm -rf $linux_dir && mkdir $linux_dir
 cd $linux_dir
