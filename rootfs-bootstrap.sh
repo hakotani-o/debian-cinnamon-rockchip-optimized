@@ -81,6 +81,7 @@ systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y dist-upgrad
 # echo 'パッケージ名 パッケージ名/質問キー boolean false' | debconf-set-selections
 systemd-nspawn -D $1 \
   --resolv-conf=replace-host \
+  --setenv=DEBIAN_FRONTEND=noninteractive \
   --as-pid2 \
   apt-get -y install cinnamon lightdm initramfs-tools vim cloud-guest-utils e2fsprogs sudo zenity apt-utils task-japanese-gnome-desktop firmware-linux grub-efi-arm64 initramfs-tools fonts-noto-cjk systemd-timesyncd alsa-utils nautilus rsyslog vim
 #firefox-esr-l10n-ja thunderbird-l10n-ja  task-gnome-desktop
