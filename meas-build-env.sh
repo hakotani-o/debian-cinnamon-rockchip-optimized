@@ -58,18 +58,18 @@ rm -f $1/etc/apt/sources.list
 
 echo "\n##################	systemd-nspawn	START	#######################\n"
 
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 apt-get clean
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 apt-get update
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 apt-get -y upgrade
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 apt-get -y dist-upgrade
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 apt-get -y install build-essential \
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get clean
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get update
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y upgrade
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y dist-upgrade
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 apt-get -y install build-essential \
 flex libssl-dev bc rsync kmod cpio xz-utils fakeroot python3 bison \
 python-is-python3 debhelper python3-pyelftools python3-setuptools \
 python3-pkg-resources swig libfdt-dev libpython3-dev \
 git fakeroot libssl-dev libelf-dev libgnutls28-dev gcc-14 g++-14
 
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14
+systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
 
 systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 apt-get -y install meson ninja-build pkgconf pkgconf-bin python3-mako \
   libdrm-dev libpciaccess-dev libffi-dev libsensors-dev libxml2-dev \
@@ -96,11 +96,11 @@ if [ "$2" == "upstream" ]; then
     echo "freedesktop staging/26.1 から取得します..."
 	# mesa staging 26.1 version
 	cp staging_panthor_mesa.sh $1 && chmod +x $1/staging_panthor_mesa.sh
-	systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 /staging_panthor_mesa.sh $Uri $suite
+	systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /staging_panthor_mesa.sh $Uri $suite
 else
 	# debian version
 	cp build_panthor_mesa.sh $1 && chmod +x $1/build_panthor_mesa.sh
-systemd-nspawn -D $1 --resolv-conf=replace-host -E DEBIAN_FRONTEND=noninteractive --as-pid2 /build_panthor_mesa.sh $Uri $suite
+    systemd-nspawn -D $1 --resolv-conf=replace-host --as-pid2 /build_panthor_mesa.sh $Uri $suite
 fi
 rm -f overlay/*.deb overlay/rel.txt
 cp $1/*.deb $1/rel.txt overlay
